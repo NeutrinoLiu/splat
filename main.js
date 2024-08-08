@@ -298,9 +298,9 @@ function translate4(a, x, y, z) {
     ];
 }
 
-const SWIN_SIZE = 10;
-const MAX_CAP = 100_000;
-const SLICE_SIZE = Math.ceil(MAX_CAP / SWIN_SIZE);
+const SLICE_NUM = 10;
+const TOTAL_CAP = 100_000;
+const SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
 const STREAM_GS_FMT = {
     start_frame : "I",
     end_frame   : "I",
@@ -428,6 +428,10 @@ function PARSE_RAW_BYTES(arrayLike) {
 }
 
 function createWorker(self) {
+    const SLICE_NUM = 10;
+    const TOTAL_CAP = 100_000;
+    const SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
+
     let buffer;
     let vertexCount = 0;
     let viewProj;
@@ -767,7 +771,7 @@ function createWorker(self) {
     let sortRunning;
     let slicePtr = new Array(10).fill(0); // indicates the number of gaussians in the slice
     function getSlice(sId){               // returns the slice with the given id
-        return new Uint8Array(buffer, sId * SLICE_SIZE * rowLength, SLICE_SIZE * rowLength);
+        return new Uint8Array(buffer, sId * SLICE_CAP * rowLength, SLICE_CAP * rowLength);
     }
 
     self.onmessage = (e) => {
@@ -786,24 +790,26 @@ function createWorker(self) {
             viewProj = e.data.view;
             throttledSort();
         } else if (e.data.resetSlice) {
+            console.log("resetting slice", e.data.resetSlice.sliceId);
             let sId = e.data.resetSlice.sliceId;
             let data = e.data.resetSlice.data;
             let num_of_gs = Math.floor(data.length / rowLength);
-            let num_of_gs_capped = Math.min(num_of_gs, SLICE_SIZE);
+            let num_of_gs_capped = Math.min(num_of_gs, SLICE_CAP);
             let bufferSlice = getSlice(sId);
-            // fill in the slice with data
-            bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength));
-            if (num_of_gs_capped < SLICE_SIZE) {
-                // fill the rest with zeros
-                bufferSlice.fill(0, num_of_gs_capped * rowLength);
-            }
+            // // fill in the slice with data
+            // bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength));
+            // if (num_of_gs_capped < SLICE_CAP) {
+            //     // fill the rest with zeros
+            //     bufferSlice.fill(0, num_of_gs_capped * rowLength);
+            // }
+            bufferSlice.fill(0);
             slicePtr[sId] = num_of_gs_capped;
         } else if (e.data.appendSlice){
             let sId = e.data.appendSlice.sliceId;
             let data = e.data.appendSlice.data;
-            if (slicePtr[sId] >= SLICE_SIZE) return;
+            if (slicePtr[sId] >= SLICE_CAP) return;
             let num_of_gs = Math.floor(data.length / rowLength);
-            let num_of_gs_capped = Math.min(num_of_gs, SLICE_SIZE - slicePtr[sId]);
+            let num_of_gs_capped = Math.min(num_of_gs, SLICE_CAP - slicePtr[sId]);
             let bufferSlice = getSlice(sId);
             // fill in the slice with data
             bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength), slicePtr[sId] * rowLength);
@@ -922,7 +928,7 @@ async function main() {
         carousel = false;
     } catch (err) {}
     const url = new URL(
-        "streamable_50.dat",
+        "streamable_600.dat",
         "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/",
         // params.get("url") || "train.splat",
         // "https://huggingface.co/cakewalk/splat-data/resolve/main/",
@@ -1609,7 +1615,7 @@ async function main() {
     console.log("start reading");
     /* --------------------------------- step 0 --------------------------------- */
     // read frame 0, with sizing MAX_CAP
-    while (bytesRead < MAX_CAP * STREAM_ROW_LENGTH) {
+    while (bytesRead < TOTAL_CAP * STREAM_ROW_LENGTH) {
         let { done, value } = await reader.read();
         // if there is any reminding fro previous read  
         let value_offset = 0;
@@ -1622,7 +1628,7 @@ async function main() {
             value_offset = STREAM_ROW_LENGTH - rowBufferOffset;
             rowBuffer.set(value.slice(0, STREAM_ROW_LENGTH - rowBufferOffset), rowBufferOffset);
             gaussians.push(PARSE_RAW_BYTES(rowBuffer)[0]);
-            console.log("load single gaussian #", gaussians.length);
+            // console.log("load single gaussian #", gaussians.length);
             bytesRead += STREAM_ROW_LENGTH;
             rowBuffer.fill(0);
             rowBufferOffset = 0
@@ -1642,25 +1648,80 @@ async function main() {
     /* --------------------------------- step 1 --------------------------------- */
     // post frame 0 to worker
     worker.postMessage({
-        buffer: GS_TO_VERTEX(gaussians.slice(0, MAX_CAP), sort_by_end = true),
-        vertexCount: MAX_CAP,
+        buffer: GS_TO_VERTEX(gaussians.slice(0, TOTAL_CAP), sort_by_end = true),
+        vertexCount: TOTAL_CAP,
     });
 
     /* --------------------------------- step 2 --------------------------------- */
     // setup frame ticker
     let curFrame = 0;
     const FPS = 10;
-    const frameInterval = 1000 / FPS;
-    let frameEvents = {};
+    let frameEvents = [];
 
-    // setInterval(() => {
-    //     console.log(`frame #${curFrame}`);
-    //     // TODO perform at-frame events and delete expired events
-    //     curFrame++;
-    // }, frameInterval);
+    setInterval(() => {
+        console.log(`frame #${curFrame}`);
+        // TODO perform at-frame events and delete expired events
+        curFrame++;
+        for (let i = 0; i < frameEvents.length; i++){
+            if (frameEvents[i].frame == curFrame){
+                worker.postMessage({
+                    resetSlice: {
+                        sliceId: frameEvents[i].frame % SLICE_NUM,
+                        data: frameEvents[i].data
+                    }
+                });
+            }
+        }
+    }, Math.ceil(1000 / FPS));
 
     /* --------------------------------- step 3 --------------------------------- */
     // append per frame events based on received data
+
+    bytesRead = 0;
+    gaussians.splice(0, TOTAL_CAP);
+    loadedFrame = 0;
+    // should not touch rowBuffer and rowBufferOffset
+    while (bytesRead < SLICE_CAP * STREAM_ROW_LENGTH) {
+        let { done, value } = await reader.read();
+        // if there is any reminding fro previous read  
+        let value_offset = 0;
+        if (rowBufferOffset > 0){
+            if (value.length + rowBufferOffset < STREAM_ROW_LENGTH){
+                rowBuffer.set(value, rowBufferOffset);
+                rowBufferOffset += value.length;
+                continue;
+            }
+            value_offset = STREAM_ROW_LENGTH - rowBufferOffset;
+            rowBuffer.set(value.slice(0, STREAM_ROW_LENGTH - rowBufferOffset), rowBufferOffset);
+            gaussians.push(PARSE_RAW_BYTES(rowBuffer)[0]);
+            // console.log("load single gaussian #", gaussians.length);
+            bytesRead += STREAM_ROW_LENGTH;
+            rowBuffer.fill(0);
+            rowBufferOffset = 0
+        }
+        // batch parse this read
+        if (done) break;
+        value = value.slice(value_offset);
+        const num_of_gs = Math.floor(value.length / STREAM_ROW_LENGTH);
+        let parsed = PARSE_RAW_BYTES(value.slice(0, num_of_gs * STREAM_ROW_LENGTH));
+        gaussians = gaussians.concat(parsed);
+        let value_rest = value.slice(num_of_gs * STREAM_ROW_LENGTH);
+        rowBuffer.set(value_rest);
+        rowBufferOffset = value_rest.length;
+        bytesRead += num_of_gs * STREAM_ROW_LENGTH;
+        
+        if (bytesRead >= SLICE_CAP * STREAM_ROW_LENGTH){
+            loadedFrame++;
+            console.log("loaded frame #", loadedFrame, "for slice id", loadedFrame % SLICE_NUM);
+            frameEvents.push({
+                frame: loadedFrame,
+                data: GS_TO_VERTEX(gaussians.slice(0, SLICE_CAP), sort_by_end = true),
+            });
+            gaussians.splice(0, SLICE_CAP);
+            bytesRead -= SLICE_CAP * STREAM_ROW_LENGTH;
+        }
+    }
+
 }
 
 main().catch((err) => {
