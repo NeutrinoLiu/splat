@@ -1,159 +1,162 @@
 let cameras = [
     {
-        id: 0,
-        img_name: "00001",
-        width: 1959,
-        height: 1090,
-        position: [
-            -3.0089893469241797, -0.11086489695181866, -3.7527640949141428,
+        "id": 0,
+        "img_name": "0/Cam001.jpg",
+        "width": 1019,
+        "height": 745,
+        "position": [
+            0.007232260564530732,
+            0.309987791156739,
+            2.33903731414556
         ],
-        rotation: [
-            [0.876134201218856, 0.06925962026449776, 0.47706599800804744],
-            [-0.04747421839895102, 0.9972110940209488, -0.057586739349882114],
-            [-0.4797239414934443, 0.027805376500959853, 0.8769787916452908],
+        "rotation": [
+            [
+                0.9999727319388764,
+                -0.0007335337134094191,
+                0.007348285990037004
+            ],
+            [
+                -0.0008200432778977561,
+                -0.9999303163911514,
+                0.011776667224411872
+            ],
+            [
+                0.007339135352509657,
+                -0.011782372010060363,
+                -0.9999036517595554
+            ]
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        "fy": 1834.5526065144063,
+        "fx": 1834.8835144895522,
+        "frame": 0
     },
     {
-        id: 1,
-        img_name: "00009",
-        width: 1959,
-        height: 1090,
-        position: [
-            -2.5199776022057296, -0.09704735754873686, -3.6247725540304545,
+        "id": 1,
+        "img_name": "0/Cam009.jpg",
+        "width": 1019,
+        "height": 745,
+        "position": [
+            -0.6165335488790487,
+            0.30852137412157626,
+            2.246431529494429
         ],
-        rotation: [
-            [0.9982731285632193, -0.011928707708098955, -0.05751927260507243],
-            [0.0065061360949636325, 0.9955928229282383, -0.09355533724430458],
-            [0.058381769258182864, 0.09301955098900708, 0.9939511719154457],
+        "rotation": [
+            [
+                0.9640291111670818,
+                0.005004204478405751,
+                0.2657495639882487
+            ],
+            [
+                0.004274028344180947,
+                -0.999985335592201,
+                0.0033258506080031756
+            ],
+            [
+                0.265762310164777,
+                -0.0020703956365682973,
+                -0.9640363623628463
+            ]
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        "fy": 1825.012808725286,
+        "fx": 1825.3419959565524,
+        "frame": 0
     },
     {
-        id: 2,
-        img_name: "00017",
-        width: 1959,
-        height: 1090,
-        position: [
-            -0.7737533667465242, -0.3364271945329695, -2.9358969417573753,
+        "id": 2,
+        "img_name": "0/Cam017.jpg",
+        "width": 1019,
+        "height": 745,
+        "position": [
+            -1.6304168150914842,
+            0.309851937782668,
+            1.6231187060691143
         ],
-        rotation: [
-            [0.9998813418672372, 0.013742375651625236, -0.0069605529394208224],
-            [-0.014268370388586709, 0.996512943252834, -0.08220929105659476],
-            [0.00580653013657589, 0.08229885200307129, 0.9965907801935302],
+        "rotation": [
+            [
+                0.7049323660760144,
+                0.002671698432660171,
+                0.7092694983473891
+            ],
+            [
+                -0.0019439873362473955,
+                -0.9999818717734322,
+                0.005698862846190836
+            ],
+            [
+                0.7092718661921595,
+                -0.0053961237928818635,
+                -0.7049143931544477
+            ]
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        "fy": 1817.6611443382017,
+        "fx": 1817.989005510805,
+        "frame": 0
     },
     {
-        id: 3,
-        img_name: "00025",
-        width: 1959,
-        height: 1090,
-        position: [
-            1.2198221749590001, -0.2196687861401182, -2.3183162007028453,
+        "id": 3,
+        "img_name": "0/Cam025.jpg",
+        "width": 1019,
+        "height": 745,
+        "position": [
+            -2.0113168248144313,
+            0.3078401534316492,
+            1.149913842280183
         ],
-        rotation: [
-            [0.9208648867765482, 0.0012010625395201253, 0.389880004297208],
-            [-0.06298204172269357, 0.987319521752825, 0.14571693239364383],
-            [-0.3847611242348369, -0.1587410451475895, 0.9092635249821667],
+        "rotation": [
+            [
+                0.4967182043663495,
+                -0.00218371811231741,
+                0.8679091293599089
+            ],
+            [
+                -0.01592531770566215,
+                -0.9998514102028582,
+                0.006598618895572357
+            ],
+            [
+                0.8677657573948417,
+                -0.01709938275380775,
+                -0.49667917351384416
+            ]
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        "fy": 1827.9648690495333,
+        "fx": 1828.2945887595636,
+        "frame": 0
     },
     {
-        id: 4,
-        img_name: "00033",
-        width: 1959,
-        height: 1090,
-        position: [
-            1.742387858893817, -0.13848225198886954, -2.0566370113193146,
+        "id": 4,
+        "img_name": "0/Cam033.jpg",
+        "width": 1019,
+        "height": 745,
+        "position": [
+            -2.302752155827769,
+            0.3082668944746969,
+            -0.006391196510424591
         ],
-        rotation: [
-            [0.24669889292141334, -0.08370189346592856, -0.9654706879349405],
-            [0.11343747891376445, 0.9919082664242816, -0.05700815184573074],
-            [0.9624300466054861, -0.09545671285663988, 0.2541976029815521],
+        "rotation": [
+            [
+                -0.003999597914543362,
+                0.013100107953590788,
+                0.9999061907939797
+            ],
+            [
+                0.0048216494549179045,
+                -0.9999023124884512,
+                0.013119343610955977
+            ],
+            [
+                0.9999803772640024,
+                0.004873669239157387,
+                0.00393604307540181
+            ]
         ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 5,
-        img_name: "00041",
-        width: 1959,
-        height: 1090,
-        position: [
-            3.6567309419223935, -0.16470990600750707, -1.3458085590422042,
-        ],
-        rotation: [
-            [0.2341293058324528, -0.02968330457755884, -0.9717522161434825],
-            [0.10270823606832301, 0.99469554638321, -0.005638106875665722],
-            [0.9667649592295676, -0.09848690996657204, 0.2359360976431732],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 6,
-        img_name: "00049",
-        width: 1959,
-        height: 1090,
-        position: [
-            3.9013554243203497, -0.2597500978038105, -0.8106154188297828,
-        ],
-        rotation: [
-            [0.6717235545638952, -0.015718162115524837, -0.7406351366386528],
-            [0.055627354673906296, 0.9980224478387622, 0.029270992841185218],
-            [0.7387104058127439, -0.060861588786650656, 0.6712695459756353],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 7,
-        img_name: "00057",
-        width: 1959,
-        height: 1090,
-        position: [4.742994605467533, -0.05591660945412069, 0.9500365976084458],
-        rotation: [
-            [-0.17042655709210375, 0.01207080756938, -0.9852964448542146],
-            [0.1165090336695526, 0.9931575292530063, -0.00798543433078162],
-            [0.9784581921120181, -0.1161568667478904, -0.1706667764862097],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 8,
-        img_name: "00065",
-        width: 1959,
-        height: 1090,
-        position: [4.34676307626522, 0.08168160516967145, 1.0876221470355405],
-        rotation: [
-            [-0.003575447631888379, -0.044792503246552894, -0.9989899137764799],
-            [0.10770152645126597, 0.9931680875192705, -0.04491693593046672],
-            [0.9941768441149182, -0.10775333677534978, 0.0012732004866391048],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 9,
-        img_name: "00073",
-        width: 1959,
-        height: 1090,
-        position: [3.264984351114202, 0.078974937336732, 1.0117200284114904],
-        rotation: [
-            [-0.026919994628162257, -0.1565891128261527, -0.9872968974090509],
-            [0.08444552208239385, 0.983768234577625, -0.1583319754069128],
-            [0.9960643893290491, -0.0876350978794554, -0.013259786205163005],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
+        "fy": 1824.661597380939,
+        "fx": 1824.990721262354,
+        "frame": 0
     },
 ];
+
+
 
 let camera = cameras[0];
 
@@ -293,6 +296,135 @@ function translate4(a, x, y, z) {
         a[2] * x + a[6] * y + a[10] * z + a[14],
         a[3] * x + a[7] * y + a[11] * z + a[15],
     ];
+}
+
+const SWIN_SIZE = 10;
+const MAX_CAP = 100_000;
+const SLICE_SIZE = Math.ceil(MAX_CAP / SWIN_SIZE);
+const STREAM_GS_FMT = {
+    start_frame : "I",
+    end_frame   : "I",
+    xyz : "fff",
+    f_dc    : "fff",
+    f_rest  : "fffffffff",
+    scaling : "fff",
+    rotation    : "ffff",
+    opacity : "f",
+    ENDIAN  : "!"
+}
+const STREAM_ROW_LENGTH = 100;
+const VERTEX_ROW_LENGTH = 32;
+function GS_TO_VERTEX(gs, sort_by_end=false) {
+    // input list of gs objects
+    // output buffer of binary data
+    const buffer = new ArrayBuffer(gs.length * VERTEX_ROW_LENGTH);
+    const vertexCount = gs.length;
+    console.time("build buffer");
+    if (sort_by_end) {
+        gs.sort((a, b) => a.end_frame - b.end_frame);
+    }
+    for (let j = 0; j < vertexCount; j++) {
+        attrs = gs[j];
+
+        const position = new Float32Array(buffer, j * VERTEX_ROW_LENGTH, 3);
+        const scales = new Float32Array(buffer, j * VERTEX_ROW_LENGTH + 4 * 3, 3);
+        const rgba = new Uint8ClampedArray(
+            buffer,
+            j * VERTEX_ROW_LENGTH + 4 * 3 + 4 * 3,
+            4,
+        );
+        const rot = new Uint8ClampedArray(
+            buffer,
+            j * VERTEX_ROW_LENGTH + 4 * 3 + 4 * 3 + 4,
+            4,
+        );
+
+        const qlen = Math.sqrt(
+            attrs.rotation[0] ** 2 +
+                attrs.rotation[1] ** 2 +
+                attrs.rotation[2] ** 2 +
+                attrs.rotation[3] ** 2,
+        );
+
+        rot[0] = (attrs.rotation[0] / qlen) * 128 + 128;
+        rot[1] = (attrs.rotation[1] / qlen) * 128 + 128;
+        rot[2] = (attrs.rotation[2] / qlen) * 128 + 128;
+        rot[3] = (attrs.rotation[3] / qlen) * 128 + 128;
+
+        scales[0] = Math.exp(attrs.scaling[0]);
+        scales[1] = Math.exp(attrs.scaling[1]);
+        scales[2] = Math.exp(attrs.scaling[2]);
+
+
+        position[0] = attrs.xyz[0];
+        position[1] = attrs.xyz[1];
+        position[2] = attrs.xyz[2];
+
+        const SH_C0 = 0.28209479177387814;
+        rgba[0] = (0.5 + SH_C0 * attrs.f_dc[0]) * 255;
+        rgba[1] = (0.5 + SH_C0 * attrs.f_dc[1]) * 255;
+        rgba[2] = (0.5 + SH_C0 * attrs.f_dc[2]) * 255;
+        rgba[3] = (1 / (1 + Math.exp(-attrs.opacity))) * 255;
+        
+        // if (j >= 0) {
+        //     console.log("Vertex -------------", j, gs[j].start_frame, gs[j].end_frame);
+        // }
+    }
+    console.timeEnd("build buffer");
+    return buffer;
+}
+
+function PARSE_RAW_BYTES(arrayLike) {
+    const view = new DataView(arrayLike.buffer, arrayLike.byteOffset, arrayLike.byteLength);
+    const jsonObjects = [];
+    const sizeOfObject = 100; // total bytes for one object
+    
+    for (let offset = 0; offset < arrayLike.byteLength; offset += sizeOfObject) {
+        const start_frame = view.getUint32(offset, false); // true for little-endian
+        const end_frame = view.getUint32(offset + 4, false);
+        
+        const xyz = [
+            view.getFloat32(offset + 8, false),
+            view.getFloat32(offset + 12, false),
+            view.getFloat32(offset + 16, false),
+        ];
+        
+        const f_dc = [
+            view.getFloat32(offset + 20, false),
+            view.getFloat32(offset + 24, false),
+            view.getFloat32(offset + 28, false),
+        ];
+        
+        // we dont really need f_rest
+        const f_rest = NaN;
+
+        const scaling = [
+            view.getFloat32(offset + 68, false),
+            view.getFloat32(offset + 72, false),
+            view.getFloat32(offset + 76, false),
+        ];
+        
+        const rotation = [
+            view.getFloat32(offset + 80, false),
+            view.getFloat32(offset + 84, false),
+            view.getFloat32(offset + 88, false),
+            view.getFloat32(offset + 92, false),
+        ];
+        
+        const opacity = view.getFloat32(offset + 96, false);
+        
+        jsonObjects.push({
+            start_frame,
+            end_frame,
+            xyz,
+            f_dc,
+            f_rest,
+            scaling,
+            rotation,
+            opacity,
+        });
+    }
+    return jsonObjects;
 }
 
 function createWorker(self) {
@@ -633,6 +765,11 @@ function createWorker(self) {
     };
 
     let sortRunning;
+    let slicePtr = new Array(10).fill(0); // indicates the number of gaussians in the slice
+    function getSlice(sId){               // returns the slice with the given id
+        return new Uint8Array(buffer, sId * SLICE_SIZE * rowLength, SLICE_SIZE * rowLength);
+    }
+
     self.onmessage = (e) => {
         if (e.data.ply) {
             vertexCount = 0;
@@ -648,6 +785,29 @@ function createWorker(self) {
         } else if (e.data.view) {
             viewProj = e.data.view;
             throttledSort();
+        } else if (e.data.resetSlice) {
+            let sId = e.data.resetSlice.sliceId;
+            let data = e.data.resetSlice.data;
+            let num_of_gs = Math.floor(data.length / rowLength);
+            let num_of_gs_capped = Math.min(num_of_gs, SLICE_SIZE);
+            let bufferSlice = getSlice(sId);
+            // fill in the slice with data
+            bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength));
+            if (num_of_gs_capped < SLICE_SIZE) {
+                // fill the rest with zeros
+                bufferSlice.fill(0, num_of_gs_capped * rowLength);
+            }
+            slicePtr[sId] = num_of_gs_capped;
+        } else if (e.data.appendSlice){
+            let sId = e.data.appendSlice.sliceId;
+            let data = e.data.appendSlice.data;
+            if (slicePtr[sId] >= SLICE_SIZE) return;
+            let num_of_gs = Math.floor(data.length / rowLength);
+            let num_of_gs_capped = Math.min(num_of_gs, SLICE_SIZE - slicePtr[sId]);
+            let bufferSlice = getSlice(sId);
+            // fill in the slice with data
+            bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength), slicePtr[sId] * rowLength);
+            slicePtr[sId] += num_of_gs_capped;
         }
     };
 }
@@ -731,10 +891,28 @@ void main () {
 
 `.trim();
 
+// let defaultViewMatrix = [
+//     0.47, 0.04, 0.88, 0, 
+//     -0.11, 0.99, 0.02, 0, 
+//     -0.88, -0.11, 0.47, 0,
+//     0.07, 0.03, 6.55, 1,
+// ];
+
 let defaultViewMatrix = [
-    0.47, 0.04, 0.88, 0, -0.11, 0.99, 0.02, 0, -0.88, -0.11, 0.47, 0, 0.07,
-    0.03, 6.55, 1,
-];
+            0.9999727319388764,
+            -0.0007335337134094191,
+            0.007348285990037004, 0,
+            -0.0008200432778977561,
+            -0.9999303163911514,
+            0.011776667224411872, 0,
+            0.007339135352509657,
+            -0.011782372010060363,
+            -0.9999036517595554, 0,
+            0.007232260564530732,
+            0.309987791156739,
+            2.33903731414556, 1
+        ]
+
 let viewMatrix = defaultViewMatrix;
 async function main() {
     let carousel = true;
@@ -744,10 +922,10 @@ async function main() {
         carousel = false;
     } catch (err) {}
     const url = new URL(
-        // "nike.splat",
-        // location.href,
-        params.get("url") || "train.splat",
-        "https://huggingface.co/cakewalk/splat-data/resolve/main/",
+        "streamable_50.dat",
+        "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/",
+        // params.get("url") || "train.splat",
+        // "https://huggingface.co/cakewalk/splat-data/resolve/main/",
     );
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
@@ -759,11 +937,14 @@ async function main() {
 
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
     const reader = req.body.getReader();
-    let splatData = new Uint8Array(req.headers.get("content-length"));
 
-    const downsample =
-        splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
-    console.log(splatData.length / rowLength, downsample);
+    // TODO reduce the size of the buffer, we dont need a full size buffer
+    // let splatData = new Uint8Array(req.headers.get("content-length"));
+
+    // TODO we dont need it
+    const downsample = 1;
+        // splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
+    // console.log(splatData.length / rowLength, downsample);
 
     const worker = new Worker(
         URL.createObjectURL(
@@ -1306,7 +1487,8 @@ async function main() {
         if (carousel) {
             let inv = invert4(defaultViewMatrix);
 
-            const t = Math.sin((Date.now() - start) / 5000);
+            // const t = Math.sin((Date.now() - start) / 5000);
+            const t = 0;
             inv = translate4(inv, 2.5 * t, 0, 6 * (1 - Math.cos(t)));
             inv = rotate4(inv, -0.6 * t, 0, 1, 0);
 
@@ -1340,12 +1522,12 @@ async function main() {
             document.getElementById("spinner").style.display = "";
             start = Date.now() + 2000;
         }
-        const progress = (100 * vertexCount) / (splatData.length / rowLength);
-        if (progress < 100) {
-            document.getElementById("progress").style.width = progress + "%";
-        } else {
-            document.getElementById("progress").style.display = "none";
-        }
+        // const progress = (100 * vertexCount) / (splatData.length / rowLength);
+        // if (progress < 100) {
+        //     document.getElementById("progress").style.width = progress + "%";
+        // } else {
+        //     document.getElementById("progress").style.display = "none";
+        // }
         fps.innerText = Math.round(avgFps) + " fps";
         if (isNaN(currentCameraIndex)){
             camid.innerText = "";
@@ -1412,6 +1594,7 @@ async function main() {
     document.addEventListener("dragenter", preventDefault);
     document.addEventListener("dragover", preventDefault);
     document.addEventListener("dragleave", preventDefault);
+    // TODO implement our own drag and drop
     document.addEventListener("drop", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1419,29 +1602,65 @@ async function main() {
     });
 
     let bytesRead = 0;
-    let lastVertexCount = -1;
-    let stopLoading = false;
+    let gaussians = [];
+    let rowBuffer = new Uint8Array(STREAM_ROW_LENGTH);
+    let rowBufferOffset = 0;
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done || stopLoading) break;
-
-        splatData.set(value, bytesRead);
-        bytesRead += value.length;
-
-        if (vertexCount > lastVertexCount) {
-            worker.postMessage({
-                buffer: splatData.buffer,
-                vertexCount: Math.floor(bytesRead / rowLength),
-            });
-            lastVertexCount = vertexCount;
+    console.log("start reading");
+    /* --------------------------------- step 0 --------------------------------- */
+    // read frame 0, with sizing MAX_CAP
+    while (bytesRead < MAX_CAP * STREAM_ROW_LENGTH) {
+        let { done, value } = await reader.read();
+        // if there is any reminding fro previous read  
+        let value_offset = 0;
+        if (rowBufferOffset > 0){
+            if (value.length + rowBufferOffset < STREAM_ROW_LENGTH){
+                rowBuffer.set(value, rowBufferOffset);
+                rowBufferOffset += value.length;
+                continue;
+            }
+            value_offset = STREAM_ROW_LENGTH - rowBufferOffset;
+            rowBuffer.set(value.slice(0, STREAM_ROW_LENGTH - rowBufferOffset), rowBufferOffset);
+            gaussians.push(PARSE_RAW_BYTES(rowBuffer)[0]);
+            console.log("load single gaussian #", gaussians.length);
+            bytesRead += STREAM_ROW_LENGTH;
+            rowBuffer.fill(0);
+            rowBufferOffset = 0
         }
+        // batch parse this read
+        value = value.slice(value_offset);
+        const num_of_gs = Math.floor(value.length / STREAM_ROW_LENGTH);
+        let parsed = PARSE_RAW_BYTES(value.slice(0, num_of_gs * STREAM_ROW_LENGTH));
+        gaussians = gaussians.concat(parsed);
+        let value_rest = value.slice(num_of_gs * STREAM_ROW_LENGTH);
+        rowBuffer.set(value_rest);
+        rowBufferOffset = value_rest.length;
+        bytesRead += num_of_gs * STREAM_ROW_LENGTH;
     }
-    if (!stopLoading)
-        worker.postMessage({
-            buffer: splatData.buffer,
-            vertexCount: Math.floor(bytesRead / rowLength),
-        });
+    console.log("read " + gaussians.length  + " gaussians");
+    console.log("finished reading");
+    /* --------------------------------- step 1 --------------------------------- */
+    // post frame 0 to worker
+    worker.postMessage({
+        buffer: GS_TO_VERTEX(gaussians.slice(0, MAX_CAP), sort_by_end = true),
+        vertexCount: MAX_CAP,
+    });
+
+    /* --------------------------------- step 2 --------------------------------- */
+    // setup frame ticker
+    let curFrame = 0;
+    const FPS = 10;
+    const frameInterval = 1000 / FPS;
+    let frameEvents = {};
+
+    // setInterval(() => {
+    //     console.log(`frame #${curFrame}`);
+    //     // TODO perform at-frame events and delete expired events
+    //     curFrame++;
+    // }, frameInterval);
+
+    /* --------------------------------- step 3 --------------------------------- */
+    // append per frame events based on received data
 }
 
 main().catch((err) => {

@@ -1,0 +1,38 @@
+
+an webGL buffer with 100_000 GS
+
+load the full frame 0 with 100_000 GS
+
+current_frame t = 0 ++
+pointer iterates from 0 to swin_size-1, 
+
+frame index : T
+subbuffer index : I
+
+0: 0 ~ 10k-1
+1: 10k ~ 20k-1
+2: 20k ~ 30k-1
+3: 30k ~ 40k-1
+4: 40k ~ 50k-1
+5: 50k ~ 60k-1
+6: 60k ~ 70k-1
+7: 70k ~ 80k-1
+8: 80k ~ 90k-1
+9: 90k ~ 100k-1
+
+two message type
+ - overwrite i , subbuffer
+ - append i, subbuffer
+
+batch read 10k gaussians
+current pointer = cpt
+lazy_enter = {
+    t0 : [overwrite_t_subbuffer]
+    t1 : [append_I_subbuffer, append_J_subbuffer]
+    t2 : [append_K_subbuffer, append_W_subbuffer]
+}
+
+
+
+
+
