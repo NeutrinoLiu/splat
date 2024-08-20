@@ -1666,7 +1666,6 @@ async function main() {
     let frameEvents = [];
     const MAX_FRAME = 592;
     const frame_ticker = setInterval(() => {
-        console.log(`frame #${curFrame}`);
         let found = false;
         for (let i = 0; i < frameEvents.length; i++){
             if (frameEvents[i].frame == curFrame){
@@ -1676,7 +1675,6 @@ async function main() {
                         data: frameEvents[i].data
                     }
                 });
-                frameEvents.splice(i, 1);
                 found = true;
                 break;
             }
@@ -1686,8 +1684,13 @@ async function main() {
             console.log("post frame #", curFrame);
         }
         if (curFrame > MAX_FRAME){
-            console.log("stop frame ticker");
-            clearInterval(frame_ticker);
+            console.log("restart ticker");
+            worker.postMessage({
+                buffer: GS_TO_VERTEX(init_gs.slice(0, TOTAL_CAP), sort_by_end = true),
+                vertexCount: TOTAL_CAP,
+            });
+            curFrame = 1;
+            // clearInterval(frame_ticker);
         }
     }, Math.ceil(1000 / FPS));
 
@@ -1695,7 +1698,7 @@ async function main() {
     // append per frame events based on received data
 
     bytesRead = 0;
-    gaussians.splice(0, TOTAL_CAP);
+    let init_gs = gaussians.splice(0, TOTAL_CAP);
     loadedFrame = 0;
     // should not touch rowBuffer and rowBufferOffset
     let data_left = false;
