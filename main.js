@@ -6,7 +6,7 @@ let cameras = [
         "height": 745,
         "position": [
             0.007232260564530732,
-            0.309987791156739,
+            0.809987791156739,
             2.33903731414556
         ],
         "rotation": [
@@ -37,7 +37,7 @@ let cameras = [
         "height": 745,
         "position": [
             -0.6165335488790487,
-            0.30852137412157626,
+            0.80852137412157626,
             2.246431529494429
         ],
         "rotation": [
@@ -68,7 +68,7 @@ let cameras = [
         "height": 745,
         "position": [
             -1.6304168150914842,
-            0.309851937782668,
+            0.809851937782668,
             1.6231187060691143
         ],
         "rotation": [
@@ -99,7 +99,7 @@ let cameras = [
         "height": 745,
         "position": [
             -2.0113168248144313,
-            0.3078401534316492,
+            0.8078401534316492,
             1.149913842280183
         ],
         "rotation": [
@@ -130,7 +130,7 @@ let cameras = [
         "height": 745,
         "position": [
             -2.302752155827769,
-            0.3082668944746969,
+            0.8082668944746969,
             -0.006391196510424591
         ],
         "rotation": [
@@ -173,7 +173,10 @@ function getProjectionMatrix(fx, fy, width, height) {
 
 function getViewMatrix(camera) {
     const R = camera.rotation.flat();
-    const t = camera.position;
+    const t = [
+        camera.position[0],
+        camera.position[1],
+        camera.position[2]];
     const camToWorld = [
         [R[0], R[1], R[2], 0],
         [R[3], R[4], R[5], 0],
@@ -319,7 +322,7 @@ function GS_TO_VERTEX(gs, sort_by_end=false) {
     // output buffer of binary data
     const buffer = new ArrayBuffer(gs.length * VERTEX_ROW_LENGTH);
     const vertexCount = gs.length;
-    console.time("build buffer");
+    // console.time("build buffer");
     if (sort_by_end) {
         gs.sort((a, b) => a.end_frame - b.end_frame);
     }
@@ -370,7 +373,7 @@ function GS_TO_VERTEX(gs, sort_by_end=false) {
         //     console.log("Vertex -------------", j, gs[j].start_frame, gs[j].end_frame);
         // }
     }
-    console.timeEnd("build buffer");
+    // console.timeEnd("build buffer");
     return buffer;
 }
 
@@ -553,10 +556,10 @@ function createWorker(self) {
         self.postMessage({ texdata, texwidth, texheight }, [texdata.buffer]);
     }
 
-    function runSort(viewProj) {
+    function runSort(viewProj, allow_skip = true) {
         if (!buffer) return;
         const f_buffer = new Float32Array(buffer);
-        if (lastVertexCount == vertexCount) {
+        if (lastVertexCount == vertexCount && allow_skip) {
             let dot =
                 lastProj[2] * viewProj[2] +
                 lastProj[6] * viewProj[6] +
@@ -790,20 +793,21 @@ function createWorker(self) {
             viewProj = e.data.view;
             throttledSort();
         } else if (e.data.resetSlice) {
+            // vertexCount should not change
             console.log("resetting slice", e.data.resetSlice.sliceId);
             let sId = e.data.resetSlice.sliceId;
-            let data = e.data.resetSlice.data;
+            let data = new Uint8Array(e.data.resetSlice.data);
             let num_of_gs = Math.floor(data.length / rowLength);
             let num_of_gs_capped = Math.min(num_of_gs, SLICE_CAP);
             let bufferSlice = getSlice(sId);
-            // // fill in the slice with data
-            // bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength));
+            // fill in the slice with data
+            bufferSlice.set(data.slice(0, num_of_gs_capped * rowLength));
             // if (num_of_gs_capped < SLICE_CAP) {
             //     // fill the rest with zeros
             //     bufferSlice.fill(0, num_of_gs_capped * rowLength);
             // }
-            bufferSlice.fill(0);
             slicePtr[sId] = num_of_gs_capped;
+            runSort(viewProj, false);
         } else if (e.data.appendSlice){
             let sId = e.data.appendSlice.sliceId;
             let data = e.data.appendSlice.data;
@@ -915,7 +919,7 @@ let defaultViewMatrix = [
             -0.011782372010060363,
             -0.9999036517595554, 0,
             0.007232260564530732,
-            0.309987791156739,
+            0.809987791156739,
             2.33903731414556, 1
         ]
 
@@ -1653,14 +1657,26 @@ async function main() {
     });
 
     /* --------------------------------- step 2 --------------------------------- */
+    function setIntervalX(callback, delay, repetitions) {
+        var x = 0;
+        var intervalID = window.setInterval(function () {
+    
+           callback();
+    
+           if (++x === repetitions) {
+               window.clearInterval(intervalID);
+               console.log("finished");
+           }
+        }, delay);
+    }
+
+
     // setup frame ticker
     let curFrame = 0;
-    const FPS = 10;
+    const FPS = 20;
     let frameEvents = [];
-
-    setInterval(() => {
+    setIntervalX(() => {
         console.log(`frame #${curFrame}`);
-        // TODO perform at-frame events and delete expired events
         curFrame++;
         for (let i = 0; i < frameEvents.length; i++){
             if (frameEvents[i].frame == curFrame){
@@ -1672,7 +1688,7 @@ async function main() {
                 });
             }
         }
-    }, Math.ceil(1000 / FPS));
+    }, Math.ceil(1000 / FPS), 600);
 
     /* --------------------------------- step 3 --------------------------------- */
     // append per frame events based on received data
@@ -1710,14 +1726,17 @@ async function main() {
         rowBufferOffset = value_rest.length;
         bytesRead += num_of_gs * STREAM_ROW_LENGTH;
         
-        if (bytesRead >= SLICE_CAP * STREAM_ROW_LENGTH){
+        let printed = false;
+        while (bytesRead >= SLICE_CAP * STREAM_ROW_LENGTH){
             loadedFrame++;
-            console.log("loaded frame #", loadedFrame, "for slice id", loadedFrame % SLICE_NUM);
+            // if (!printed) {
+            //     console.log("loaded frame #", loadedFrame, "for slice id", loadedFrame % SLICE_NUM);
+            //     printed = true;
+            // }
             frameEvents.push({
                 frame: loadedFrame,
-                data: GS_TO_VERTEX(gaussians.slice(0, SLICE_CAP), sort_by_end = true),
+                data: GS_TO_VERTEX(gaussians.splice(0, SLICE_CAP), sort_by_end = true),
             });
-            gaussians.splice(0, SLICE_CAP);
             bytesRead -= SLICE_CAP * STREAM_ROW_LENGTH;
         }
     }
