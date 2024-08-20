@@ -322,7 +322,7 @@ function GS_TO_VERTEX(gs, sort_by_end=false) {
     // output buffer of binary data
     const buffer = new ArrayBuffer(gs.length * VERTEX_ROW_LENGTH);
     const vertexCount = gs.length;
-    // console.time("build buffer");
+    console.time("build buffer");
     if (sort_by_end) {
         gs.sort((a, b) => a.end_frame - b.end_frame);
     }
@@ -373,7 +373,7 @@ function GS_TO_VERTEX(gs, sort_by_end=false) {
         //     console.log("Vertex -------------", j, gs[j].start_frame, gs[j].end_frame);
         // }
     }
-    // console.timeEnd("build buffer");
+    console.timeEnd("build buffer");
     return buffer;
 }
 
@@ -1657,27 +1657,17 @@ async function main() {
     });
 
     /* --------------------------------- step 2 --------------------------------- */
-    function setIntervalX(callback, delay, repetitions) {
-        var x = 0;
-        var intervalID = window.setInterval(function () {
-    
-           callback();
-    
-           if (++x === repetitions) {
-               window.clearInterval(intervalID);
-               console.log("finished");
-           }
-        }, delay);
-    }
+
 
 
     // setup frame ticker
-    let curFrame = 0;
+    let curFrame = 1;
     const FPS = 20;
     let frameEvents = [];
-    setIntervalX(() => {
+    const MAX_FRAME = 592;
+    const frame_ticker = setInterval(() => {
         console.log(`frame #${curFrame}`);
-        curFrame++;
+        let found = false;
         for (let i = 0; i < frameEvents.length; i++){
             if (frameEvents[i].frame == curFrame){
                 worker.postMessage({
@@ -1686,9 +1676,20 @@ async function main() {
                         data: frameEvents[i].data
                     }
                 });
+                frameEvents.splice(i, 1);
+                found = true;
+                break;
             }
         }
-    }, Math.ceil(1000 / FPS), 600);
+        if (found) {
+            curFrame++;
+            console.log("post frame #", curFrame);
+        }
+        if (curFrame > MAX_FRAME){
+            console.log("stop frame ticker");
+            clearInterval(frame_ticker);
+        }
+    }, Math.ceil(1000 / FPS));
 
     /* --------------------------------- step 3 --------------------------------- */
     // append per frame events based on received data
@@ -1697,6 +1698,7 @@ async function main() {
     gaussians.splice(0, TOTAL_CAP);
     loadedFrame = 0;
     // should not touch rowBuffer and rowBufferOffset
+    let data_left = false;
     while (bytesRead < SLICE_CAP * STREAM_ROW_LENGTH) {
         let { done, value } = await reader.read();
         // if there is any reminding fro previous read  
@@ -1715,8 +1717,11 @@ async function main() {
             rowBuffer.fill(0);
             rowBufferOffset = 0
         }
+        if (done) {
+            data_left = value;
+            break;
+        }
         // batch parse this read
-        if (done) break;
         value = value.slice(value_offset);
         const num_of_gs = Math.floor(value.length / STREAM_ROW_LENGTH);
         let parsed = PARSE_RAW_BYTES(value.slice(0, num_of_gs * STREAM_ROW_LENGTH));
@@ -1729,6 +1734,31 @@ async function main() {
         let printed = false;
         while (bytesRead >= SLICE_CAP * STREAM_ROW_LENGTH){
             loadedFrame++;
+            if (!printed) {
+                console.log("loaded frame #", loadedFrame, "for slice id", loadedFrame % SLICE_NUM);
+                printed = true;
+            }
+            frameEvents.push({
+                frame: loadedFrame,
+                data: GS_TO_VERTEX(gaussians.splice(0, SLICE_CAP), sort_by_end = true),
+            });
+            bytesRead -= SLICE_CAP * STREAM_ROW_LENGTH;
+        }
+    }
+    if (data_left){
+        let value = data_left;
+        console.log("data left");
+        value = value.slice(value_offset);
+        const num_of_gs = Math.floor(value.length / STREAM_ROW_LENGTH);
+        let parsed = PARSE_RAW_BYTES(value.slice(0, num_of_gs * STREAM_ROW_LENGTH));
+        gaussians = gaussians.concat(parsed);
+        let value_rest = value.slice(num_of_gs * STREAM_ROW_LENGTH);
+        rowBuffer.set(value_rest);
+        rowBufferOffset = value_rest.length;
+        bytesRead += num_of_gs * STREAM_ROW_LENGTH;
+        
+        while (bytesRead >= SLICE_CAP * STREAM_ROW_LENGTH){
+            loadedFrame++;
             // if (!printed) {
             //     console.log("loaded frame #", loadedFrame, "for slice id", loadedFrame % SLICE_NUM);
             //     printed = true;
@@ -1739,6 +1769,7 @@ async function main() {
             });
             bytesRead -= SLICE_CAP * STREAM_ROW_LENGTH;
         }
+
     }
 
 }
