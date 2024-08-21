@@ -7,7 +7,7 @@ let cameras = [
         "position": [
             0.007232260564530732,
             0.809987791156739,
-            2.33903731414556
+            3.33903731414556
         ],
         "rotation": [
             [
@@ -38,7 +38,7 @@ let cameras = [
         "position": [
             -0.6165335488790487,
             0.80852137412157626,
-            2.246431529494429
+            3.246431529494429
         ],
         "rotation": [
             [
@@ -69,7 +69,7 @@ let cameras = [
         "position": [
             -1.6304168150914842,
             0.809851937782668,
-            1.6231187060691143
+            2.6231187060691143
         ],
         "rotation": [
             [
@@ -100,7 +100,7 @@ let cameras = [
         "position": [
             -2.0113168248144313,
             0.8078401534316492,
-            1.149913842280183
+            2.149913842280183
         ],
         "rotation": [
             [
@@ -131,7 +131,7 @@ let cameras = [
         "position": [
             -2.302752155827769,
             0.8082668944746969,
-            -0.006391196510424591
+            1.006391196510424591
         ],
         "rotation": [
             [
@@ -949,7 +949,7 @@ let defaultViewMatrix = [
             -0.9999036517595554, 0,
             0.007232260564530732,
             0.809987791156739,
-            2.33903731414556, 1
+            3.33903731414556, 1
         ]
 
 let viewMatrix = defaultViewMatrix;
@@ -1395,7 +1395,7 @@ async function main() {
     });
 
     let leftGamepadTrigger, rightGamepadTrigger;
-
+    let curFrame = 0;
     const frame = (now) => {
         let inv = invert4(viewMatrix);
         let shiftKey = activeKeys.includes("Shift") || activeKeys.includes("ShiftLeft") || activeKeys.includes("ShiftRight")
@@ -1567,7 +1567,9 @@ async function main() {
         // } else {
         //     document.getElementById("progress").style.display = "none";
         // }
-        fps.innerText = Math.round(avgFps) + " fps";
+        fps.innerText = Math.round(avgFps);
+        const curFrameDOM = document.getElementById("frame");
+        curFrameDOM.innerText = curFrame;
         if (isNaN(currentCameraIndex)){
             camid.innerText = "";
         }
@@ -1692,10 +1694,12 @@ async function main() {
 
 
     // setup frame ticker
-    let curFrame = 1;
+    curFrame ++;
     const FPS = 20;
+    const curFPS= document.getElementById("FPS");
+    curFPS.innerText = FPS;
     let frameEvents = [];
-    const MAX_FRAME = 600;
+    const MAX_FRAME = 599;
     const frame_ticker = setInterval(() => {
         let updated = false;
         for (let i = 0; i < frameEvents.length; i++){
@@ -1728,8 +1732,8 @@ async function main() {
         }
 
         if (curFrame > MAX_FRAME){
-            clearInterval(frame_ticker);
-            return;
+            // clearInterval(frame_ticker);
+            // return;
             console.log("restart ticker");
             let ret = GS_TO_VERTEX(init_gs.slice(0, TOTAL_CAP), full_gs = true)
             worker.postMessage({
@@ -1748,6 +1752,7 @@ async function main() {
     loadedFrame = 0;
     // should not touch rowBuffer and rowBufferOffset
     let data_left = false;
+    const PREFETCH_SEC = FPS * 3;
     while (bytesRead < SLICE_CAP * STREAM_ROW_LENGTH && loadedFrame < MAX_FRAME) {
         let { done, value } = await reader.read();
         // if there is any reminding fro previous read  
@@ -1813,6 +1818,10 @@ async function main() {
         }
         if (done) {
             break;
+        }
+        if (loadedFrame - curFrame > PREFETCH_SEC){
+            await new Promise(r => setTimeout(r, 10));
+            continue;
         }
     }
 
