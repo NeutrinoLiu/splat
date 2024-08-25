@@ -131,7 +131,7 @@ let cameras = [
         "position": [
             -2.302752155827769,
             0.8082668944746969,
-            1.006391196510424591
+            1012.006391196510424591
         ],
         "rotation": [
             [
@@ -301,22 +301,21 @@ function translate4(a, x, y, z) {
     ];
 }
 
-const SLICE_NUM = 10;
-const TOTAL_CAP = 100_000;
-const SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
-const STREAM_GS_FMT = {
-    start_frame : "I",
-    end_frame   : "I",
-    xyz : "fff",
-    f_dc    : "fff",
-    f_rest  : "fffffffff",
-    scaling : "fff",
-    rotation    : "ffff",
-    opacity : "f",
-    ENDIAN  : "!"
+var SLICE_NUM
+var TOTAL_CAP
+var SLICE_CAP
+var STREAM_GS_FMT
+var STREAM_ROW_LENGTH
+var VERTEX_ROW_LENGTH
+
+function setup_consts(config) {
+    SLICE_NUM = config.SLICE_NUM;
+    TOTAL_CAP = config.TOTAL_CAP;
+    SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
+    STREAM_GS_FMT = config.STREAM_GS_FMT;
+    STREAM_ROW_LENGTH = config.STREAM_ROW_LENGTH;
+    VERTEX_ROW_LENGTH = config.VERTEX_ROW_LENGTH;
 }
-const STREAM_ROW_LENGTH = 100;
-const VERTEX_ROW_LENGTH = 32;
 function GS_TO_VERTEX(gs, full_gs=false) {
     // input list of gs objects
     // output buffer of binary data
@@ -453,10 +452,7 @@ function PARSE_RAW_BYTES(arrayLike) {
     return jsonObjects;
 }
 
-function createWorker(self) {
-    const SLICE_NUM = 10;
-    const TOTAL_CAP = 100_000;
-    const SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
+function createWorker(self, SLICE_CAP) {
 
     let buffer;
     let vertexCount = 0;
@@ -507,7 +503,7 @@ function createWorker(self) {
         return (floatToHalf(x) | (floatToHalf(y) << 16)) >>> 0;
     }
 
-    function generateTexture() {
+    function generateTexture(subset = null) {
         if (!buffer) return;
         const f_buffer = new Float32Array(buffer);
         const u_buffer = new Uint8Array(buffer);
@@ -523,6 +519,7 @@ function createWorker(self) {
         // should have been the native format as it'd be very easy to
         // load it into webgl.
         for (let i = 0; i < vertexCount; i++) {
+            if (subset && subset.size >0 && !subset.has(i)) continue;
             // x, y, z
             texdata_f[8 * i + 0] = f_buffer[8 * i + 0];
             texdata_f[8 * i + 1] = f_buffer[8 * i + 1];
@@ -576,13 +573,14 @@ function createWorker(self) {
             texdata[8 * i + 6] = packHalf2x16(4 * sigma[4], 4 * sigma[5]);
         }
 
-        self.postMessage({ texdata, texwidth, texheight }, [texdata.buffer]);
+        self.postMessage({ texdata, texwidth, texheight, subset}, [texdata.buffer]);
     }
 
-    function runSort(viewProj, allow_skip = true) {
+    function runSort(viewProj, subset=null) {
         if (!buffer) return;
+        let full_rebuild = ! subset || subset.size == 0;
         const f_buffer = new Float32Array(buffer);
-        if (lastVertexCount == vertexCount && allow_skip) {
+        if (lastVertexCount == vertexCount && full_rebuild) {
             let dot =
                 lastProj[2] * viewProj[2] +
                 lastProj[6] * viewProj[6] +
@@ -591,7 +589,7 @@ function createWorker(self) {
                 return;
             }
         } else {
-            generateTexture();
+            generateTexture(subset);
             lastVertexCount = vertexCount;
         }
 
@@ -628,9 +626,16 @@ function createWorker(self) {
         console.timeEnd("sort");
 
         lastProj = viewProj;
-        self.postMessage({ depthIndex, viewProj, vertexCount }, [
-            depthIndex.buffer,
-        ]);
+        if (! full_rebuild) {
+            let skipBind = true;
+            self.postMessage({ depthIndex, viewProj, vertexCount, skipBind}, [
+                depthIndex.buffer,
+            ]);
+        } else {
+            self.postMessage({ depthIndex, viewProj, vertexCount }, [
+                depthIndex.buffer,
+            ]);
+        }
     }
 
     function processPlyBuffer(inputBuffer) {
@@ -846,7 +851,7 @@ function createWorker(self) {
             slicePtr[sId] += num_of_gs_capped;
             // do not runSort here
         } else if (e.data.reSort) {
-            runSort(viewProj, false);
+            runSort(viewProj, []);
         }
     };
 }
@@ -953,19 +958,20 @@ let defaultViewMatrix = [
         ]
 
 let viewMatrix = defaultViewMatrix;
-async function main() {
+async function main(config) {
     let carousel = true;
     const params = new URLSearchParams(location.search);
     try {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
         carousel = false;
     } catch (err) {}
-    const url = new URL(
-        "streamable_600.dat",
-        "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/",
-        // params.get("url") || "train.splat",
-        // "https://huggingface.co/cakewalk/splat-data/resolve/main/",
-    );
+    // const url = new URL(
+    //     // params.get("url") || "train.splat",
+    //     // "https://huggingface.co/cakewalk/splat-data/resolve/main/",
+    // );
+    //    "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/a02_600.dat"
+    //    "http://127.0.0.1:5500/streamable.dat"
+    const url = config.MODEL_URL;
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
         credentials: "omit", // include, *same-origin, omit
@@ -987,7 +993,7 @@ async function main() {
 
     const worker = new Worker(
         URL.createObjectURL(
-            new Blob(["(", createWorker.toString(), ")(self)"], {
+            new Blob(["(", createWorker.toString(), `)(self, ${SLICE_CAP})`], {
                 type: "application/javascript",
             }),
         ),
@@ -1129,7 +1135,8 @@ async function main() {
             gl.bindTexture(gl.TEXTURE_2D, texture);
         } else if (e.data.depthIndex) {
             const { depthIndex, viewProj } = e.data;
-            gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+            if (! e.data.skipBind)
+                gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, depthIndex, gl.DYNAMIC_DRAW);
             vertexCount = e.data.vertexCount;
         }
@@ -1695,11 +1702,11 @@ async function main() {
 
     // setup frame ticker
     curFrame ++;
-    const FPS = 20;
+    const FPS = config.FPS;
     const curFPS= document.getElementById("FPS");
     curFPS.innerText = FPS;
     let frameEvents = [];
-    const MAX_FRAME = 599;
+    const MAX_FRAME = config.MAX_FRAME;
     const frame_ticker = setInterval(() => {
         let updated = false;
         for (let i = 0; i < frameEvents.length; i++){
@@ -1752,7 +1759,7 @@ async function main() {
     loadedFrame = 0;
     // should not touch rowBuffer and rowBufferOffset
     let data_left = false;
-    const PREFETCH_SEC = FPS * 3;
+    const PREFETCH_FRAME = FPS * config.PREFETCH_SEC;
     while (bytesRead < SLICE_CAP * STREAM_ROW_LENGTH && loadedFrame < MAX_FRAME) {
         let { done, value } = await reader.read();
         // if there is any reminding fro previous read  
@@ -1819,7 +1826,7 @@ async function main() {
         if (done) {
             break;
         }
-        if (loadedFrame - curFrame > PREFETCH_SEC){
+        if (loadedFrame - curFrame > PREFETCH_FRAME){
             await new Promise(r => setTimeout(r, 10));
             continue;
         }
@@ -1827,7 +1834,15 @@ async function main() {
 
 }
 
-main().catch((err) => {
-    document.getElementById("spinner").style.display = "none";
-    document.getElementById("message").innerText = err.toString();
-});
+async function entry_point() {
+    const resp = await fetch("config.json")
+    const config = await resp.json();
+    console.log("config loaded: ", config);
+    setup_consts(config);
+    main(config).catch((err) => {
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("message").innerText = err.toString();
+    });
+}
+
+entry_point();
