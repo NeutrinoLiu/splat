@@ -307,6 +307,7 @@ var SLICE_CAP
 var STREAM_GS_FMT
 var STREAM_ROW_LENGTH
 var VERTEX_ROW_LENGTH
+var defaultViewMatrix
 
 function setup_consts(config) {
     SLICE_NUM = config.SLICE_NUM;
@@ -315,6 +316,7 @@ function setup_consts(config) {
     STREAM_GS_FMT = config.STREAM_GS_FMT;
     STREAM_ROW_LENGTH = config.STREAM_ROW_LENGTH;
     VERTEX_ROW_LENGTH = config.VERTEX_ROW_LENGTH;
+    defaultViewMatrix = config.INIT_VIEW;
 }
 function GS_TO_VERTEX(gs, full_gs=false) {
     // input list of gs objects
@@ -935,30 +937,10 @@ void main () {
 
 `.trim();
 
-// let defaultViewMatrix = [
-//     0.47, 0.04, 0.88, 0, 
-//     -0.11, 0.99, 0.02, 0, 
-//     -0.88, -0.11, 0.47, 0,
-//     0.07, 0.03, 6.55, 1,
-// ];
 
-let defaultViewMatrix = [
-            0.9999727319388764,
-            -0.0007335337134094191,
-            0.007348285990037004, 0,
-            -0.0008200432778977561,
-            -0.9999303163911514,
-            0.011776667224411872, 0,
-            0.007339135352509657,
-            -0.011782372010060363,
-            -0.9999036517595554, 0,
-            0.007232260564530732,
-            0.809987791156739,
-            3.33903731414556, 1
-        ]
-
-let viewMatrix = defaultViewMatrix;
+let viewMatrix;
 async function main(config) {
+    viewMatrix = defaultViewMatrix;
     let carousel = true;
     const params = new URLSearchParams(location.search);
     try {
