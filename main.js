@@ -314,7 +314,14 @@ function setup_consts(config) {
     TOTAL_CAP = config.TOTAL_CAP;
     SLICE_CAP = Math.ceil(TOTAL_CAP / SLICE_NUM);
     STREAM_GS_FMT = config.STREAM_GS_FMT;
-    STREAM_ROW_LENGTH = config.STREAM_ROW_LENGTH;
+    STREAM_ROW_LENGTH = 0;
+    for (const [k, v] of Object.entries(STREAM_GS_FMT)) {
+        if (k == "ENDIAN") {
+            continue;
+        }
+        STREAM_ROW_LENGTH += v.length * 4;
+    }
+    console.log("STREAM_ROW_LENGTH", STREAM_ROW_LENGTH);
     VERTEX_ROW_LENGTH = config.VERTEX_ROW_LENGTH;
     defaultViewMatrix = config.INIT_VIEW;
 }
@@ -454,7 +461,7 @@ function PARSE_RAW_BYTES(arrayLike) {
     return jsonObjects;
 }
 
-function createWorker(self, SLICE_CAP) {
+function createWorker(self, SLICE_CAP, SLICE_NUM) {
 
     let buffer;
     let vertexCount = 0;
@@ -520,8 +527,16 @@ function createWorker(self, SLICE_CAP) {
         // With a little bit more foresight perhaps this texture file
         // should have been the native format as it'd be very easy to
         // load it into webgl.
+        // for each 8xUin32 Row in the texture buffer:
+
+        // 0-2: XYZ in 4 Byte each      : 12B
+        // 3: RGBA in 1 Byte each       : 4B
+        // 4-6: texture in 4 Byte each  : 12B
+        // 7: placeholder for future    : 4B
+
         for (let i = 0; i < vertexCount; i++) {
-            if (subset && subset.size >0 && !subset.has(i)) continue;
+            // currently we generate the full texture, instead of selectively
+            // if (subset && subset.size >0 && !subset.includes(i)) continue;
             // x, y, z
             texdata_f[8 * i + 0] = f_buffer[8 * i + 0];
             texdata_f[8 * i + 1] = f_buffer[8 * i + 1];
@@ -580,7 +595,7 @@ function createWorker(self, SLICE_CAP) {
 
     function runSort(viewProj, subset=null) {
         if (!buffer) return;
-        let full_rebuild = ! subset || subset.size == 0;
+        let full_rebuild = !subset || subset.size == 0;
         const f_buffer = new Float32Array(buffer);
         if (lastVertexCount == vertexCount && full_rebuild) {
             let dot =
@@ -802,10 +817,12 @@ function createWorker(self, SLICE_CAP) {
     };
 
     let sortRunning;
-    let slicePtr = new Array(10).fill(0); // indicates the number of gaussians in the slice
+    let slicePtr = new Array(SLICE_NUM).fill(0); // indicates the number of gaussians in the slice
+    let slicePtrHistory = new Array(SLICE_NUM).fill(0); 
     function getSlice(sId){               // returns the slice with the given id
         return new Uint8Array(buffer, sId * SLICE_CAP * rowLength, SLICE_CAP * rowLength);
     }
+
 
     self.onmessage = (e) => {
         if (e.data.ply) {
@@ -853,7 +870,24 @@ function createWorker(self, SLICE_CAP) {
             slicePtr[sId] += num_of_gs_capped;
             // do not runSort here
         } else if (e.data.reSort) {
-            runSort(viewProj, []);
+            const reset_slices = e.data.reSort.reset_slices;
+            let newVertexSpans = []
+            for (let i = 0; i < SLICE_NUM; i++) {
+                if (reset_slices.includes(i)) {
+                    newVertexSpans.push([i*SLICE_CAP, (i+1)*SLICE_CAP]);
+                } else {
+                    if (slicePtr[i] == slicePtrHistory[i]) {
+                        continue;
+                    } else {
+                        if (slicePtr[i] < slicePtrHistory[i]) {
+                            console.error(`slice #${i} has less gs ${slicePtr[i]} than before ${slicePtrHistory[i]}`);
+                        }
+                        newVertexSpans.push([i*SLICE_CAP + slicePtrHistory[i],
+                                             i*SLICE_CAP + slicePtr[i]]);
+                    }
+                }
+            }
+            runSort(viewProj, newVertexSpans);
         }
     };
 }
@@ -953,6 +987,7 @@ async function main(config) {
     // );
     //    "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/a02_600.dat"
     //    "http://127.0.0.1:5500/streamable.dat"
+    //     "http://127.0.0.1:5500/cook_100_5.dat"
     const url = config.MODEL_URL;
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin
@@ -975,7 +1010,7 @@ async function main(config) {
 
     const worker = new Worker(
         URL.createObjectURL(
-            new Blob(["(", createWorker.toString(), `)(self, ${SLICE_CAP})`], {
+            new Blob(["(", createWorker.toString(), `)(self, ${SLICE_CAP}, ${SLICE_NUM})`], {
                 type: "application/javascript",
             }),
         ),
@@ -1086,7 +1121,7 @@ async function main(config) {
             document.body.appendChild(link);
             link.click();
         } else if (e.data.texdata) {
-            const { texdata, texwidth, texheight } = e.data;
+            const { texdata, texwidth, texheight, subset} = e.data;
             // console.log(texdata)
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texParameteri(
@@ -1102,17 +1137,44 @@ async function main(config) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA32UI,
-                texwidth,
-                texheight,
-                0,
-                gl.RGBA_INTEGER,
-                gl.UNSIGNED_INT,
-                texdata,
-            );
+            if (! subset || subset.size == 0)
+                gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0,
+                    gl.RGBA32UI,
+                    texwidth,
+                    texheight,
+                    0,
+                    gl.RGBA_INTEGER,
+                    gl.UNSIGNED_INT,
+                    texdata,
+                );
+            else {
+                for (let i = 0; i < subset.length; i++) {
+                    let subset_from = subset[i][0];
+                    let subset_to = subset[i][1];
+                    
+                    // the updated texture subset is slightly larger than the original subset
+                    const W = texwidth;
+                    const startY = Math.floor((subset_from * 8) / (W * 4));
+                    const endY = Math.ceil((subset_to * 8) / (W * 4));
+                    const numRows = endY - startY;
+                    const real_from = startY * W * 4;
+                    const real_to = (startY + numRows) * W * 4;
+                    const subsetData = texdata.slice(real_from, real_to);
+                    gl.texSubImage2D(
+                        gl.TEXTURE_2D,
+                        0,
+                        0,
+                        startY,
+                        W,   // full texture line update
+                        numRows,
+                        gl.RGBA_INTEGER,
+                        gl.UNSIGNED_INT,
+                        subsetData,
+                    );
+                }
+            }
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
         } else if (e.data.depthIndex) {
@@ -1691,8 +1753,10 @@ async function main(config) {
     const MAX_FRAME = config.MAX_FRAME;
     const frame_ticker = setInterval(() => {
         let updated = false;
+        let reset_slices = [];
         for (let i = 0; i < frameEvents.length; i++){
             if (frameEvents[i].frame == curFrame && frameEvents[i].type == "reset"){
+                reset_slices.push(frameEvents[i].sliceId);
                 worker.postMessage({
                     resetSlice: {
                         sliceId: frameEvents[i].sliceId,
@@ -1716,11 +1780,13 @@ async function main(config) {
         if (updated) {
             console.log("frame #", curFrame, " : starts");
             worker.postMessage(
-                {reSort: true});
+                {reSort: {
+                    reset_slices: reset_slices,
+                }});
                 curFrame++;
         }
 
-        if (curFrame > MAX_FRAME){
+        if (curFrame >= MAX_FRAME){
             // clearInterval(frame_ticker);
             // return;
             console.log("restart ticker");
