@@ -1,9 +1,9 @@
 {
     "FPS" : 20,
-    "MAX_FRAME" : 100,
+    "MAX_FRAME" : 300,
     "PREFETCH_SEC" : 3,
-    "SLICE_NUM" : 5,
-    "TOTAL_CAP" : 200000,
+    "SLICE_NUM" : 10,
+    "TOTAL_CAP" : 100000,
     "STREAM_GS_FMT" : {
         "start_frame" : "I",
         "end_frame"   : "I",
@@ -16,8 +16,8 @@
         "ENDIAN"  : "!"
     },
     "VERTEX_ROW_LENGTH" : 32,
-    "MODEL_URL" : "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/cook_100_5.dat",
-    "INIT_VIEW" : [
+    "MODEL_URL" : "https://huggingface.co/NeutrinoLiu/testGS/resolve/main/a06_300.dat",
+    "INIT_VIEW_COOK" : [
         0.9995171947951,
         -0.022987569874150304,
         -0.020903323664316437, 0,
@@ -31,7 +31,7 @@
         -1.3261323504199474,
         4.2554713480216256, 1
     ],
-    "INIT_VIEW_ACTOR" : [
+    "INIT_VIEW" : [
         0.9999727319388764,
         -0.0007335337134094191,
         0.007348285990037004, 0,
